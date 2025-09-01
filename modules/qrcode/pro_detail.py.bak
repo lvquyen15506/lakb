@@ -1,0 +1,359 @@
+# File: pro_detail.py
+
+from zlapi.models import *
+import platform
+import psutil
+import time
+import socket
+import os
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+import subprocess
+import io
+import colorsys
+import random
+import glob
+import requests
+from datetime import datetime, timedelta, timezone
+from core.bot_sys import is_admin
+from modules.AI_GEMINI.pro_gemini import get_user_name_by_id
+
+bot_name = "BOT"
+cre = "L A K"
+description = "Hiển thị thông tin thiết bị đang chạy bot"
+start_time = time.time()
+
+BACKGROUND_PATH = "background/"
+CACHE_PATH = "modules/cache/"
+OUTPUT_IMAGE_PATH = os.path.join(CACHE_PATH, "system_detail.png")
+
+def get_uptime():
+    try:
+        uptime_sec = int(time.time() - start_time)
+        hours = uptime_sec // 3600
+        minutes = (uptime_sec % 3600) // 60
+        seconds = uptime_sec % 60
+        return f"{hours}h {minutes}m {seconds}s"
+    except Exception: return "N/A"
+
+def get_ram():
+    try:
+        mem = psutil.virtual_memory()
+        used = round(mem.used / (1024 ** 3), 2)
+        total = round(mem.total / (1024 ** 3), 2)
+        available = round(mem.available / (1024 ** 3), 2)
+        percent = round(mem.percent, 1)
+        return f"{used}/{total} GB ({percent}%)\nAvailable: {available} GB"
+    except Exception: return "N/A"
+
+def get_cpu():
+    try:
+        cpu_name = platform.processor()
+        if not cpu_name:
+            if os.name == 'nt':
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+                cpu_name = winreg.QueryValueEx(key, "ProcessorNameString")[0]
+                winreg.CloseKey(key)
+            else:
+                with open('/proc/cpuinfo', 'r') as f:
+                    for line in f:
+                        if line.startswith('model name'):
+                            cpu_name = line.split(':', 1)[1].strip()
+                            break
+        cpu_percent = round(psutil.cpu_percent(interval=1), 1)
+        cpu_count_logical = psutil.cpu_count(logical=True)
+        cpu_count_physical = psutil.cpu_count(logical=False)
+        try:
+            cpu_freq = psutil.cpu_freq()
+            current_freq = round(cpu_freq.current, 0)
+            max_freq = round(cpu_freq.max, 0)
+            freq_info = f"{current_freq}/{max_freq} MHz"
+        except: freq_info = "N/A"
+        return f"{cpu_name[:40]}\n{cpu_count_physical}C/{cpu_count_logical}T • {cpu_percent}%\n{freq_info}"
+    except Exception: return "N/A"
+
+def get_gpu():
+    try:
+        if os.name == 'nt':
+            try:
+                result = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total,temperature.gpu', '--format=csv,noheader,nounits'], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0 and result.stdout.strip():
+                    name, memory, temp = result.stdout.strip().split(', ')
+                    return f"{name}\n{memory}MB VRAM • {temp}°C"
+            except Exception: pass
+            try:
+                import wmi
+                c = wmi.WMI()
+                gpu = c.Win32_VideoController()[0]
+                return gpu.Name[:40]
+            except Exception: return "Không tìm thấy"
+        else:
+            try:
+                result = subprocess.run(['lspci', '-v'], capture_output=True, text=True, timeout=5)
+                for line in result.stdout.splitlines():
+                    if "VGA compatible controller" in line or "3D controller" in line:
+                        gpu_info = line.split(': ')[1]
+                        return gpu_info[:40]
+            except Exception: return "Không tìm thấy"
+    except Exception: return "Lỗi lấy thông tin GPU"
+
+def get_disk():
+    try:
+        disk = psutil.disk_usage('/') if os.name != 'nt' else psutil.disk_usage('C:')
+        used = round(disk.used / (1024 ** 3), 2)
+        total = round(disk.total / (1024 ** 3), 2)
+        free = round(disk.free / (1024 ** 3), 2)
+        percent = round(disk.percent, 1)
+        return f"{used}/{total} GB ({percent}%)\nFree: {free} GB"
+    except Exception: return "N/A"
+
+def get_os():
+    try:
+        system, release, arch = platform.system(), platform.release(), platform.architecture()[0]
+        if system == "Windows":
+            import winreg
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion")
+            product_name = winreg.QueryValueEx(key, "ProductName")[0]
+            build = winreg.QueryValueEx(key, "CurrentBuildNumber")[0]
+            winreg.CloseKey(key)
+            return f"{product_name}\nBuild {build} • {arch}"
+        elif system == "Linux":
+            with open('/etc/os-release', 'r') as f:
+                for line in f:
+                    if line.startswith('PRETTY_NAME='):
+                        distro = line.split('=')[1].strip().strip('"')
+                        return f"{distro}\nKernel {release} • {arch}"
+        return f"{system} {release}\n{arch}"
+    except Exception: return platform.platform()
+
+def get_python_ver():
+    return f"{platform.python_implementation()} {platform.python_version()}\n{platform.python_compiler()}"
+
+def get_boot_time():
+    try:
+        boot_dt = datetime.fromtimestamp(psutil.boot_time())
+        uptime = datetime.now() - boot_dt
+        days = uptime.days
+        hours, rem = divmod(uptime.seconds, 3600)
+        minutes, _ = divmod(rem, 60)
+        uptime_str = f"{days}d {hours}h {minutes}m" if days > 0 else f"{hours}h {minutes}m"
+        return f"{boot_dt.strftime('%d/%m %H:%M')}\nUptime: {uptime_str}"
+    except Exception: return "N/A"
+
+def get_loadavg():
+    try:
+        if hasattr(os, 'getloadavg'):
+            loads = os.getloadavg()
+            return f"1m: {loads[0]:.2f}\n5m: {loads[1]:.2f} • 15m: {loads[2]:.2f}"
+        else:
+            load = (psutil.cpu_percent(interval=1) / 100) * psutil.cpu_count()
+            return f"Est. Load: {load:.2f}\n(Windows approximation)"
+    except Exception: return "N/A"
+
+def get_username():
+    return os.getenv('USER') or os.getenv('USERNAME') or "Unknown"
+
+def get_app():
+    return "ZaloBot"
+
+def get_network_info():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(0); s.connect(('8.8.8.8', 80)); status = "Connected"; s.close()
+    except Exception: status = "Offline"
+    net_io = psutil.net_io_counters()
+    sent = round(net_io.bytes_sent / (1024**2), 1)
+    recv = round(net_io.bytes_recv / (1024**2), 1)
+    return f"Status: {status}\n↑{sent}MB ↓{recv}MB"
+
+def download_avatar(avatar_url, save_path=os.path.join(CACHE_PATH, "user_avatar_detail.png")):
+    try:
+        resp = requests.get(avatar_url, stream=True, timeout=5)
+        if resp.status_code == 200:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            with open(save_path, "wb") as f:
+                for chunk in resp.iter_content(1024): f.write(chunk)
+            return save_path
+    except Exception as e:
+        print(f"❌ Lỗi tải avatar: {e}")
+    return None
+
+def generate_system_detail_image(bot, author_id, thread_id, thread_type):
+    images = glob.glob(os.path.join(BACKGROUND_PATH, "*.jpg")) + glob.glob(os.path.join(BACKGROUND_PATH, "*.png"))
+    if not images:
+        print("❌ Không tìm thấy ảnh trong thư mục background/")
+        return None
+
+    image_path = random.choice(images)
+
+    try:
+        size = (5000, 4125)
+        final_size = (3125, 2578)
+
+        bg_image = Image.open(image_path).convert("RGBA").resize(size, Image.Resampling.LANCZOS)
+        bg_image = bg_image.filter(ImageFilter.GaussianBlur(radius=20))
+        overlay = Image.new("RGBA", size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+
+        box_color = (10, 10, 10, 150)
+
+        box_x1, box_y1 = 150, 120
+        box_x2, box_y2 = size[0] - 150, size[1] - 120
+        draw.rounded_rectangle([(box_x1, box_y1), (box_x2, box_y2)], radius=150, fill=box_color)
+
+        font_arial_path = "arial unicode ms.otf"
+        font_emoji_path = "emoji.ttf"
+
+        try:
+            font_title = ImageFont.truetype(font_arial_path, 200)
+            font_label = ImageFont.truetype(font_arial_path, 140)
+            font_value = ImageFont.truetype(font_arial_path, 120)
+            font_time = ImageFont.truetype(font_arial_path, 130)
+            font_icon = ImageFont.truetype(font_emoji_path, 140)
+            font_icon_large = ImageFont.truetype(font_emoji_path, 280)
+        except IOError:
+            print("⚠️ Cảnh báo: Không tìm thấy file font. Sử dụng font mặc định.")
+            font_title=ImageFont.load_default(size=200); font_label=ImageFont.load_default(size=140); font_value=ImageFont.load_default(size=120); font_time=ImageFont.load_default(size=130); font_icon=ImageFont.load_default(size=140); font_icon_large=ImageFont.load_default(size=280)
+
+        def draw_text_with_shadow(draw, position, text, font, fill, shadow_color=(0,0,0,255)):
+            x, y = position
+            draw.text((x + 4, y + 4), text, font=font, fill=shadow_color)
+            draw.text((x, y), text, font=font, fill=fill)
+
+        vietnam_now = datetime.now(timezone(timedelta(hours=7)))
+        time_icon = "🌤️" if 6 <= vietnam_now.hour < 18 else "🌙"
+        time_text = f" {vietnam_now.strftime('%H:%M')}"
+        time_x, time_y = box_x2 - 600, box_y1 + 50
+        time_color = (255, 255, 255, 255)
+        draw_text_with_shadow(draw, (time_x - 180, time_y), time_icon, font_icon, (200, 150, 50, 255))
+        draw_text_with_shadow(draw, (time_x, time_y), time_text, font_time, time_color)
+
+        user_info = bot.fetchUserInfo(author_id) if author_id else None
+        user_name = get_user_name_by_id(bot, author_id)
+        greeting_name = "Chủ Nhân" if is_admin(bot, author_id) else user_name
+        
+        avatar_url = None
+        if user_info and hasattr(user_info, 'changed_profiles') and author_id in user_info.changed_profiles:
+            profile = user_info.changed_profiles.get(author_id)
+            if profile and hasattr(profile, 'avatar'):
+                avatar_obj = profile.avatar
+                if isinstance(avatar_obj, str):
+                    avatar_url = avatar_obj
+                elif isinstance(avatar_obj, dict):
+                    avatar_url = avatar_obj.get('normalUrl') or avatar_obj.get('thumbnailUrl')
+        
+        avatar_path = None
+        if avatar_url:
+            avatar_path = download_avatar(avatar_url)
+        
+        if avatar_path and os.path.exists(avatar_path):
+            avatar_size = 350
+            avatar_img = Image.open(avatar_path).convert("RGBA").resize((avatar_size, avatar_size), Image.Resampling.LANCZOS)
+            mask = Image.new("L", (avatar_size, avatar_size), 0); ImageDraw.Draw(mask).ellipse((0, 0, avatar_size, avatar_size), fill=255)
+            border_size = avatar_size + 25
+            
+            border_image = Image.new("RGBA", (border_size, border_size), (0, 0, 0, 0))
+            draw_border = ImageDraw.Draw(border_image)
+            draw_border.rounded_rectangle([(0, 0), (border_size, border_size)], radius=border_size//2, fill=(255,255,255,150))
+            
+            avatar_y = box_y1 + 100
+            overlay.paste(border_image, (box_x1 + 100, avatar_y), border_image)
+            overlay.paste(avatar_img, (box_x1 + 112, avatar_y + 12), mask)
+        
+        title = "THÔNG TIN HỆ THỐNG"
+        draw_text_with_shadow(draw, (box_x1 + 600, box_y1 + 120), title, font_title, (255, 255, 102))
+        subtitle = f"Hi {greeting_name}, thông tin chi tiết hệ thống"
+        draw_text_with_shadow(draw, (box_x1 + 600, box_y1 + 350), subtitle, font_value, (173, 216, 230))
+
+        system_info = [
+            ("👤", "User", get_username()), ("📱", "App", get_app()), ("🧠", "Memory", get_ram()),
+            ("⚡", "CPU", get_cpu()), ("🎮", "GPU", get_gpu()), ("💽", "Storage", get_disk()),
+            ("🖥️", "OS", get_os()), ("📊", "Load Avg", get_loadavg()), ("🐍", "Python", get_python_ver()),
+            ("🌐", "Network", get_network_info()), ("🚀", "Boot Time", get_boot_time()), ("⏰", "Bot Uptime", get_uptime())
+        ]
+        
+        col1_items, col2_items = system_info[:6], system_info[6:]
+
+        start_y, line_height, col1_x = box_y1 + 550, 450, box_x1 + 180
+        label_color, value_color = (135, 206, 250), (255, 255, 255)
+
+        for i, (emoji, label, value) in enumerate(col1_items):
+            y = start_y + i * line_height
+            draw_text_with_shadow(draw, (col1_x, y), emoji, font_icon, (255, 182, 193))
+            draw_text_with_shadow(draw, (col1_x + 180, y), f"{label}:", font_label, label_color)
+            for j, line in enumerate(value.split('\n')):
+                draw_text_with_shadow(draw, (col1_x + 180, y + 150 + j * 90), line, font_value, value_color)
+
+        col2_x = box_x1 + 2500
+        for i, (emoji, label, value) in enumerate(col2_items):
+            y = start_y + i * line_height
+            draw_text_with_shadow(draw, (col2_x, y), emoji, font_icon, (255, 182, 193))
+            draw_text_with_shadow(draw, (col2_x + 180, y), f"{label}:", font_label, label_color)
+            for j, line in enumerate(value.split('\n')):
+                draw_text_with_shadow(draw, (col2_x + 180, y + 150 + j * 90), line, font_value, value_color)
+        
+        right_icon = random.choice(["🎧", "🎵", "📊", "💻", "⚙️"])
+        draw_text_with_shadow(draw, (box_x2 - 500, (box_y1 + box_y2 - 300) // 2), right_icon, font_icon_large, (144, 238, 144))
+        draw.rounded_rectangle([(box_x1-4, box_y1-4), (box_x2+4, box_y2+4)], radius=154, outline=(255, 255, 255, 150), width=10)
+
+        final_image = Image.alpha_composite(bg_image, overlay).resize(final_size, Image.Resampling.LANCZOS)
+        os.makedirs(CACHE_PATH, exist_ok=True)
+        final_image.save(OUTPUT_IMAGE_PATH, "PNG", quality=98)
+        
+        print(f"✅ Ảnh system detail đã được lưu: {OUTPUT_IMAGE_PATH}")
+        return OUTPUT_IMAGE_PATH
+
+    except Exception as e:
+        print(f"❌ Lỗi xử lý ảnh system detail: {e}")
+        return None
+
+def handle_detail_command(message, message_object, thread_id, thread_type, author_id, bot):
+    try:
+        image_path = generate_system_detail_image(bot, author_id, thread_id, thread_type)
+        
+        if not image_path:
+            system_info = f"""
+╭─╌「 🖥️ THÔNG TIN HỆ THỐNG 」
+│
+├─ 👤 User: {get_username()}
+├─ 📱 App: {get_app()}
+├─ 🧠 Memory: {get_ram().splitlines()[0]}
+├─ ⚡ CPU: {get_cpu().splitlines()[0]}
+├─ 🎮 GPU: {get_gpu().splitlines()[0]}
+├─ 💽 Storage: {get_disk().splitlines()[0]}
+├─ 🖥️ OS: {get_os().splitlines()[0]}
+├─ 📊 Load Avg: {get_loadavg().splitlines()[0]}
+├─ 🐍 Python: {get_python_ver().splitlines()[0]}
+├─ 🌐 Network: {get_network_info().splitlines()[0]}
+├─ 🚀 Boot Time: {get_boot_time().splitlines()[0]}
+├─ ⏰ Uptime: {get_uptime()}
+│
+╰─╌「 Generated by {bot_name} | {cre} 」
+            """
+            bot.replyMessage(Message(text=system_info.strip()), message_object, thread_id=thread_id, thread_type=thread_type)
+            return
+
+        bot.sendReaction(message_object, random.choice(["👍", "💖", "🚀", "😎", "💪", "🌟"]), thread_id, thread_type)
+        user_name = get_user_name_by_id(bot, author_id)
+        message_text = f"{user_name}\n📊 Thông tin chi tiết hệ thống của bạn!"
+
+        send_result = bot.sendLocalImage(
+            imagePath=image_path,
+            message=Message(text=message_text, mention=Mention(uid=author_id, length=len(user_name), offset=0)),
+            thread_id=thread_id,
+            thread_type=thread_type,
+            width=3125,
+            height=2578,
+            ttl=60000
+        )
+        
+        if not send_result:
+            bot.replyMessage(Message(text="❌ Lỗi khi gửi ảnh. Vui lòng thử lại."), message_object, thread_id=thread_id, thread_type=thread_type)
+
+        try:
+            if os.path.exists(image_path): os.remove(image_path)
+        except Exception as e:
+            print(f"❌ Lỗi khi xóa ảnh: {e}")
+            
+    except Exception as e:
+        print(f"DEBUG: Lỗi trong handle_detail_command: {e}")
+        bot.replyMessage(Message(text=f"❌ Lỗi khi tạo thông tin hệ thống: {str(e)}"), message_object, thread_id=thread_id, thread_type=thread_type)

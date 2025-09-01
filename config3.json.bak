@@ -1,0 +1,93 @@
+{
+    "data": [
+        {
+            "prefix": ".",
+            "session_cookies": {
+                "_ga": "GA1.2.338154955.1753806538",
+                "_gid": "GA1.2.811054868.1753806538",
+                "zputm_source": "",
+                "zputm_medium": "",
+                "zputm_campaign": "",
+                "zpsrc": "",
+                "_ga_RYD7END4JE": "GS2.2.s1753806582$o1$g1$t1753806586$j56$l0$h0",
+                "ZConsent": "timestamp=1753806591425&location=https://zalo.me/pc",
+                "_ga_VM4ZJE1265": "GS2.2.s1753806539$o1$g1$t1753806596$j3$l0$h0",
+                "_zlang": "vn",
+                "zpsid": "74Xr.330452199.3.FK7430KtM7tYU-fk2JTOVN14Aaus1sn8DmPXHAxAiN-x4FZD10AWzMqtM7q",
+                "zpw_sek": "ctFy.330452199.a0.t7iw810rJMFtUVzmCJLDOsiNA0Wo3syoA7C194DC02WWNtyxG08S9L5yUWzd2711RPwmYXABQiEWD7gRc5rDOm",
+                "__zi": "3000.SSZzejyD0jydXQckra00a3BBfxQL71AQV8UajTXK59jzYgZxs5eOr7IDg_tPMXROD0.1",
+                "__zi-legacy": "3000.SSZzejyD0jydXQckra00a3BBfxQL71AQV8UajTXK59jzYgZxs5eOr7IDg_tPMXROD0.1",
+                "ozi": "2000.SSZzejyD0jydXQckra00a3BBfxQK71AQVOUaljbI5vHrWQgvrneUadREexxK71-IE3aq.1",
+                "app.event.zalo.me": "6581246330400908252"
+            },
+            "imei": "80b17748-abb4-44b6-9577-0f96061e4c43-f318d71f51e2f42138d3a75f6a7137a8",
+            "is_main_bot": true,
+            "username": "L A K(Huynh)",
+            "author_id": "44228721446262183",
+            "status": true
+        },
+        {
+            "prefix": "!",
+            "session_cookies": {
+                "_ga": "GA1.2.798285001.1743137774",
+                "_ga_VM4ZJE1265": "GS1.2.1743137775.1.0.1743137775.0.0.0",
+                "ozi": "2000.QOBlzDCV2uGerkFzm09GrcJMu_p025RPADxayOy8KjeZt-xnCJ8.1",
+                "_ga_RYD7END4JE": "GS1.2.1743158506.3.1.1743158506.60.0.0",
+                "_zlang": "vn",
+                "_gid": "GA1.2.850157603.1753877320",
+                "zpsid": "useN.343202951.23.ybu-pZ5ZR2cslnWzFMDiAKGG7Xe5K5uP0rfP69g7jNO3aaw8CE9OerbZR2a",
+                "zpw_sek": "M1Dj.343202951.a0.A98oG9IooUGJRhtmjRB9vE-Gh8-sYEkdvCIDfgR8kzRCyxEheEkwqiBslwN5Z_J6wHajFSk0ECOriqhG7jh9v0",
+                "__zi": "3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8ywck-Zd4HVZdIIxQRJH5kDVvFdfZ4o.1",
+                "__zi-legacy": "3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8ywck-Zd4HVZdIIxQRJH5kDVvFdfZ4o.1",
+                "app.event.zalo.me": "4252294609073706378"
+            },
+            "imei": "d8992229-0a91-4695-8790-b50ecc6d0cd1-50041963ae561cfabe9225edff35b18f",
+            "is_main_bot": true,
+            "username": "L A K",
+            "author_id": "6974745449671074801",
+            "status": true
+        },
+        {
+            "prefix": ">",
+            "session_cookies": {
+                "_ga": "GA1.2.629399685.1753400044",
+                "__zi": "3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8Wzc-kXc4jSXN2TxgpNJbk0SvhjhJCn.1",
+                "__zi-legacy": "3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8Wzc-kXc4jSXN2TxgpNJbk0SvhjhJCn.1",
+                "ozi": "2000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjMXe9fFM8yvaUgadq1RZZsVegEUJHIBEfgXf9rC5ua.1",
+                "_zlang": "vn",
+                "_gid": "GA1.2.1439186227.1754746275",
+                "_gat": "1",
+                "zpsid": "WH8K.432651728.7.YA6LxwNL-9zrQ366gTNudz2cYgkMvywgbEBAfmuqAQeRybWlf7wr2CtL-9y",
+                "zpw_sek": "y27j.432651728.a0.kyaqOJ5VR0dXugKG45zi2Kfz2M8JPKvZO0bQVLSEGrXx1rzFH6qxC5S9McnWOb4hJFIDs0JXIwc1Ni54fZTi2G",
+                "app.event.zalo.me": "7809230047391817430"
+            },
+            "imei": "57f44d0f-f7b1-4589-971a-898aa1c47592-f318d71f51e2f42138d3a75f6a7137a8",
+            "is_main_bot": false,
+            "username": "L A K",
+            "author_id": "552782355350996128",
+            "status": false
+        },
+        {
+            "prefix": ">",
+            "session_cookies": {
+                "_ga": "GA1.2.629399685.1753400044",
+                "__zi": "3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8Wzc-kXc4jSXN2TxgpNJbk0SvhjhJCn.1",
+                "__zi-legacy": "3000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjIXe9fEM8Wzc-kXc4jSXN2TxgpNJbk0SvhjhJCn.1",
+                "ozi": "2000.SSZzejyD6zOgdh2mtnLQWYQN_RAG01ICFjMXe9fFM8yvaUgadq1RZZsVegEUJHIBEfgXf9rC5ua.1",
+                "_zlang": "vn",
+                "_gid": "GA1.2.1439186227.1754746275",
+                "_gat": "1",
+                "zpsid": "WH8K.432651728.7.YA6LxwNL-9zrQ366gTNudz2cYgkMvywgbEBAfmuqAQeRybWlf7wr2CtL-9y",
+                "zpw_sek": "y27j.432651728.a0.kyaqOJ5VR0dXugKG45zi2Kfz2M8JPKvZO0bQVLSEGrXx1rzFH6qxC5S9McnWOb4hJFIDs0JXIwc1Ni54fZTi2G",
+                "app.event.zalo.me": "7809230047391817430"
+            },
+            "imei": "57f44d0f-f7b1-4589-971a-898aa1c47592-f318d71f51e2f42138d3a75f6a7137a8",
+            "is_main_bot": false,
+            "username": "Ngọc An X Tweaks",
+            "author_id": "5834196366363054076",
+            "status": true,
+            "kich_hoat": "10/08/2025",
+            "het_han": "23/12/2026"
+        }
+    ]
+}
