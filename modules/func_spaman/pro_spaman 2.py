@@ -90,7 +90,11 @@ def handle_spaman_command(message, message_object, thread_id, thread_type, autho
             Message(text="Đa bat spam message!"),
             message_object, thread_id, thread_type
         )
-        threading.Thread(target=send_spam_loop, args=(thread_id, thread_type, ttl=5000, client, message_object), daemon=True).start()
+        threading.Thread(
+            target=send_spam_loop,
+            args=(thread_id, thread_type, client, message_object),
+            daemon=True,
+        ).start()
 
     elif cmd == "off":
         if not spam_threads.get(thread_id, False):
