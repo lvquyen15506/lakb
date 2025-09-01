@@ -87,7 +87,7 @@ def load_message_log(uid):
         with open(log_file_path, 'r', encoding='utf-8') as f:
             settings = json.load(f)
             return settings.get("message_log", {})
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
 def save_message_log(uid, message_log):
@@ -95,7 +95,7 @@ def save_message_log(uid, message_log):
     try:
         with open(log_file_path, 'r', encoding='utf-8') as f:
             settings = json.load(f)
-    except FileNotFoundError:
+   except (FileNotFoundError, json.JSONDecodeError):
         settings = {}
     settings["message_log"] = message_log
     with open(log_file_path, 'w', encoding='utf-8') as f:
