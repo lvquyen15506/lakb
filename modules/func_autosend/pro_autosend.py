@@ -233,7 +233,10 @@ def autosend_task(client):
             current_time_str = now.strftime("%H:%M")
             if current_time_str in time_poems:
                 settings = read_settings(client.uid)
-                autosend_groups = {k: v for k, v in settings.get("autosend", {}).items() if v} # Chỉ lấy nhóm đang bật
+                autosend_data = settings.get("autosend", {})
+                if not isinstance(autosend_data, dict):
+                    autosend_data = {}
+                autosend_groups = {k: v for k, v in autosend_data.items() if v} # Chỉ lấy nhóm đang bật
 
                 if not autosend_groups:
                     time.sleep(20)
@@ -299,8 +302,9 @@ def handle_autosend_command(client, message_object, thread_id, thread_type, mess
     command = message.replace(f"{prefix}autosend", "").strip().lower()
     settings = read_settings(client.uid)
     
-    if "autosend" not in settings:
+    if "autosend" not in settings or not isinstance(settings.get("autosend"), dict):
         settings["autosend"] = {}
+        write_settings(client.uid, settings)
 
     current_status = settings.get("autosend", {}).get(thread_id, False)
 
